@@ -7,6 +7,40 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      html, body, #root { min-height: 100%; }
+      html[data-theme="dark"] body { background: #0b1717 !important; color: #edf7ed !important; }
+      .theme-shell, .theme-shell * { transition-property: background-color, color, border-color, box-shadow; transition-duration: 700ms; }
+      html[data-theme="dark"] .theme-shell [class*="bg-[#f4f5f0]"],
+      html[data-theme="dark"] .theme-shell [class*="bg-[#fbfcf8]"],
+      html[data-theme="dark"] .theme-shell [class*="bg-white"] { background-color: #142523 !important; }
+      html[data-theme="dark"] .theme-shell [class*="text-[#152033]"],
+      html[data-theme="dark"] .theme-shell [class*="text-slate-950"],
+      html[data-theme="dark"] .theme-shell [class*="text-slate-900"] { color: #edf7ed !important; }
+      html[data-theme="dark"] .theme-shell [class*="text-[#738276]"],
+      html[data-theme="dark"] .theme-shell [class*="text-[#9aa79a]"],
+      html[data-theme="dark"] .theme-shell [class*="text-slate-500"] { color: #a7beb1 !important; }
+      html[data-theme="dark"] .theme-shell [class*="text-[#385744]"],
+      html[data-theme="dark"] .theme-shell [class*="text-[#56805c]"] { color: #c5dfc8 !important; }
+      html[data-theme="dark"] .theme-shell [class*="text-[#256044]"] { color: #d0edb5 !important; }
+      html[data-theme="dark"] .theme-shell [class*="bg-[#e9f3df]"],
+      html[data-theme="dark"] .theme-shell [class*="bg-[#e4f0e6]"],
+      html[data-theme="dark"] .theme-shell [class*="bg-[#f0f2eb]"],
+      html[data-theme="dark"] .theme-shell [class*="bg-[#e6ebe3]"] { background-color: #244238 !important; }
+      html[data-theme="dark"] .theme-shell [class*="bg-[#fff2e9]"] { background-color: #4b3027 !important; }
+      html[data-theme="dark"] .theme-shell [class*="border-[#dfe4dc]"],
+      html[data-theme="dark"] .theme-shell [class*="border-[#cbd6ca]"],
+      html[data-theme="dark"] .theme-shell [class*="border-[#e2e8df]"] { border-color: #2b4942 !important; }
+      html[data-theme="dark"] .theme-shell input { background-color: #142523 !important; color: #edf7ed !important; border-color: #36534d !important; }
+      html[data-theme="dark"] .theme-shell input::placeholder { color: #789286 !important; }
+      html[data-theme="dark"] .theme-shell textarea { background-color: #142523 !important; color: #edf7ed !important; border-color: #36534d !important; }
+      html[data-theme="dark"] .theme-shell textarea::placeholder { color: #789286 !important; }
+      @media print {
+        .print-hidden { display: none !important; }
+        body { background: #ffffff !important; }
+        .theme-shell { background-image: none !important; padding: 0 !important; }
+      }
+    </style>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="min-h-screen bg-[#f4f5f0] text-[#152033] antialiased" style="font-family: 'DM Sans', sans-serif;">
