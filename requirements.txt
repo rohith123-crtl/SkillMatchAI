@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-multipart
+sentence-transformers
+spacy
+pdfplumber
+python-docx
+numpy
+# then: python -m spacy download en_core_web_sm
