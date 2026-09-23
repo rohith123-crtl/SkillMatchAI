@@ -2,7 +2,7 @@
 import io, re, json, sqlite3, datetime as dt
 from urllib.parse import quote_plus
 import numpy as np, pdfplumber, docx, spacy
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from spacy.matcher import PhraseMatcher
 from sentence_transformers import SentenceTransformer
@@ -184,21 +184,6 @@ async def job_matches(resume: UploadFile = File(...), location: str = ""):
     roles = role_matches(profile["skills"])
     matches = [{**role, "links": job_links(role["title"], profile["skills"], location)} for role in roles]
     return {"profile": profile, "matches": matches}
-
-
-@app.post("/api/job-description-match")
-async def job_description_match(resume: UploadFile = File(...), job_description: str = Form(...)):
-    if not job_description.strip():
-        raise HTTPException(422, "Add a job description before matching.")
-    resume_text = parse_file(resume, await resume.read())
-    job = structure(job_description, is_jd=True)
-    profile = structure(resume_text)
-    if not job["skills"]:
-        raise HTTPException(422, "No skills detected in the job description.")
-    if not profile["skills"]:
-        raise HTTPException(422, "No skills detected in this resume.")
-    candidate = score_candidate(job, job_description, resume_text, {**profile, "file": resume.filename})
-    return {"job": job, "candidate": candidate}
 
 
 @app.post("/api/resume-improvements")

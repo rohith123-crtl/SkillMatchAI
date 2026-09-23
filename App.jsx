@@ -153,17 +153,6 @@ function ReportButton() {
   return <button type="button" onClick={() => window.print()} className="print-hidden px-4 py-2 rounded-xl bg-[#172a2b] text-white font-semibold hover:bg-[#ed6845] transition">⇩ Export PDF</button>;
 }
 
-function JobDescriptionResult({ data, onReset }) {
-  const candidate = data.candidate;
-  return (
-    <motion.div {...fade} className="space-y-6">
-      <div className="flex justify-between items-end gap-4 flex-wrap print-hidden"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#ed6845]">Exact role match</p><h2 className="text-3xl font-bold text-[#152033] mt-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{data.job.name}</h2><p className="text-sm text-[#738276] mt-2">A direct comparison between your resume and this job description.</p></div><div className="flex gap-2"><ReportButton /><button onClick={onReset} className="px-4 py-2 rounded-xl border border-[#cbd6ca] bg-white text-[#256044] font-semibold">New match</button></div></div>
-      <div className={`${glass} p-6 grid md:grid-cols-[auto_1fr] gap-6 items-center`}><Gauge value={candidate.score} size={170} /><div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#56805c]">Resume fit score</p><h3 className="text-2xl font-bold text-[#152033] mt-1">{candidate.name}</h3><p className="text-sm text-[#738276] mt-1">{candidate.explanation}</p><div className="grid grid-cols-3 gap-3 mt-5">{[["Skills", candidate.breakdown.skill], ["Experience", candidate.breakdown.experience], ["Domain", candidate.breakdown.domain]].map(([label, value]) => <div key={label} className="rounded-xl bg-[#e9f3df] p-3 text-center"><strong className="block text-xl text-[#256044]">{value}%</strong><span className="text-xs text-[#56805c]">{label}</span></div>)}</div></div></div>
-      <div className="grid lg:grid-cols-2 gap-5"><div className="bg-[#e9f3df] border border-[#d7e7cc] rounded-[1.4rem] p-5"><p className="text-xs font-bold uppercase tracking-[.18em] text-[#56805c]">Matched signals · {candidate.matched.length}</p><div className="flex flex-wrap gap-2 mt-4">{candidate.matched.map((item) => <span key={item.skill} className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#256044]">{item.skill}</span>)}</div></div><div className="bg-[#fff2e9] border border-[#f8d8c7] rounded-[1.4rem] p-5"><p className="text-xs font-bold uppercase tracking-[.18em] text-[#a24d32]">Skills to strengthen · {candidate.missing.length}</p><div className="flex flex-wrap gap-2 mt-4">{candidate.missing.map((item) => <span key={item.skill} className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#a24d32]">{item.skill}</span>)}</div></div></div>
-    </motion.div>
-  );
-}
-
 function ImprovementResults({ data, onReset }) {
   return (
     <motion.div {...fade} className="space-y-6">
@@ -254,7 +243,6 @@ export default function App() {
   const [data, setData] = useState(null);
   const [err, setErr] = useState("");
   const [location, setLocation] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
   const [jobTitle, setJobTitle] = useState(careerRoles[0].title);
   const [theme, setTheme] = useState(() => {
     if (typeof window === "undefined") return "light";
@@ -285,15 +273,6 @@ export default function App() {
       setData(await res.json()); setPhase("job-results");
     } catch (e) { setErr(e.message); setPhase("upload"); }
   };
-  const matchJob = async () => {
-    setErr(""); setPhase("match-analysis");
-    const fd = new FormData(); fd.append("resume", resumes[0]); fd.append("job_description", jobDescription);
-    try {
-      const res = await fetch("/api/job-description-match", { method: "POST", body: fd });
-      if (!res.ok) throw new Error((await res.json()).detail || "Job match failed");
-      setData(await res.json()); setPhase("match-results");
-    } catch (e) { setErr(e.message); setPhase("upload"); }
-  };
   const improveResume = async () => {
     setErr(""); setPhase("improve-analysis");
     const fd = new FormData(); fd.append("resume", resumes[0]);
@@ -318,7 +297,7 @@ export default function App() {
       setLocation(detected); setLocating(false); findJobs(detected);
     }, () => { setLocating(false); setErr("Location permission was not available. Enter a location manually."); }, { enableHighAccuracy: false, timeout: 10000 });
   };
-  const reset = () => { setPhase("upload"); setResumes([]); setData(null); setJobDescription(""); setErr(""); };
+  const reset = () => { setPhase("upload"); setResumes([]); setData(null); setErr(""); };
 
   return (
     <main className={`theme-shell min-h-screen px-4 py-5 sm:px-8 sm:py-8 ${theme === "dark" ? "theme-dark" : "theme-light"}`} style={{ backgroundImage: theme === "dark" ? "linear-gradient(rgba(132,190,157,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(132,190,157,.055) 1px, transparent 1px)" : "linear-gradient(rgba(53,83,70,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(53,83,70,.035) 1px, transparent 1px)", backgroundSize: "34px 34px" }}>
@@ -332,18 +311,17 @@ export default function App() {
         </div>
         <div className="flex items-center gap-3"><div className="rounded-2xl border border-[#dfe4dc] bg-white/70 px-4 py-3 text-left sm:text-right text-xs text-[#738276]"><span className="font-bold uppercase tracking-[.16em] text-[#256044]">Live career intelligence</span><br /><span className="inline-block mt-1">Market-aware matching · {theme === "dark" ? "Dark mode" : "Light mode"}</span></div><button type="button" onClick={toggleTheme} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#cbd6ca] bg-[#172a2b] text-xl text-[#f7d89b] shadow-[0_8px_22px_rgba(23,42,43,.18)] hover:scale-105 hover:border-[#ed6845] transition-transform"><motion.span animate={{ rotate: theme === "dark" ? 180 : 0, scale: theme === "dark" ? 1.08 : 1 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>{theme === "dark" ? "☾" : "☀"}</motion.span><span className="sr-only">Toggle theme</span></button></div>
       </header>
-      {phase === "upload" && <div className="print-hidden flex flex-wrap gap-1 mb-7 p-1 bg-[#e6ebe3] rounded-xl w-fit"><button onClick={() => setTool("jobs")} className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${tool === "jobs" ? "bg-[#172a2b] text-white shadow-sm" : "text-[#738276]"}`}>Find jobs</button><button onClick={() => setTool("match")} className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${tool === "match" ? "bg-[#172a2b] text-white shadow-sm" : "text-[#738276]"}`}>Match a job</button><button onClick={() => setTool("improve")} className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${tool === "improve" ? "bg-[#172a2b] text-white shadow-sm" : "text-[#738276]"}`}>Improve resume</button></div>}
+      {phase === "upload" && <div className="print-hidden relative mb-7 flex w-fit rounded-full border border-[#cbd6ca] bg-[#e6ebe3] p-1 shadow-[0_8px_24px_rgba(31,49,42,.08)]"><motion.div layoutId="mode-pill" transition={{ type: "spring", stiffness: 420, damping: 30 }} className={`absolute inset-y-1 w-[calc(50%-4px)] rounded-full bg-[#172a2b] shadow-[0_4px_12px_rgba(23,42,43,.2)] ${tool === "improve" ? "left-[calc(50%+1px)]" : "left-1"}`} /><button onClick={() => setTool("jobs")} className={`relative z-10 min-w-32 rounded-full px-5 py-2.5 text-sm font-bold transition-colors ${tool === "jobs" ? "text-white" : "text-[#738276]"}`}>Find jobs</button><button onClick={() => setTool("improve")} className={`relative z-10 min-w-32 rounded-full px-5 py-2.5 text-sm font-bold transition-colors ${tool === "improve" ? "text-white" : "text-[#738276]"}`}>Improve resume</button></div>}
       <AnimatePresence mode="wait">
         {phase === "upload" && (
           <motion.div key="u" {...fade} className="grid lg:grid-cols-[1.2fr_.8fr] gap-6 items-start">
             <div className="space-y-5">
             {tool === "jobs" && <><Drop label="Your resume" files={resumes.slice(0, 1)} onFiles={(f) => setResumes(f.slice(0, 1))} /><div className="max-w-md"><label className="block text-sm font-semibold text-[#385744] mb-2">Preferred location <span className="font-normal text-[#9aa79a]">(optional)</span></label><div className="flex gap-2"><input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Bengaluru, Remote" className="min-w-0 flex-1 px-4 py-3 rounded-xl border border-[#dfe4dc] bg-white/80 focus:outline-none focus:border-[#ed6845]" /><button type="button" onClick={detectLocation} disabled={locating} className="shrink-0 rounded-xl border border-[#dfe4dc] bg-white px-3 text-xs font-bold text-[#256044] hover:border-[#ed6845] hover:text-[#ed6845] disabled:opacity-50 transition" title="Detect location and find jobs">{locating ? "Locating..." : "◎ Auto-detect"}</button></div></div></>}
-            {tool === "match" && <><Drop label="Your resume" files={resumes.slice(0, 1)} onFiles={(f) => setResumes(f.slice(0, 1))} /><div><label className="block text-sm font-semibold text-[#385744] mb-2">Paste the job description</label><textarea value={jobDescription} onChange={(event) => setJobDescription(event.target.value)} rows="8" placeholder="Paste the role, responsibilities, and requirements here..." className="w-full resize-y rounded-[1.4rem] border border-[#dfe4dc] bg-white/80 px-4 py-3 text-sm text-[#152033] focus:outline-none focus:border-[#ed6845]" /></div></>}
             {tool === "improve" && <><Drop label="Your resume" files={resumes.slice(0, 1)} onFiles={(f) => setResumes(f.slice(0, 1))} /><div className="rounded-[1.4rem] border border-[#dfe4dc] bg-white/70 p-5"><p className="text-xs font-bold uppercase tracking-[.18em] text-[#ed6845]">Improvement studio</p><p className="mt-2 text-sm leading-relaxed text-[#738276]">We will identify high-value skill gaps and give you focused changes to make your resume more convincing.</p></div></>}
             {err && <p className="text-red-600 text-center">{err}</p>}
-            <div className="flex items-center justify-between gap-4 rounded-[1.4rem] bg-[#ed6845] p-5 text-white"><div><p className="font-bold">Ready when you are?</p><p className="text-sm text-white/75 mt-1">{tool === "jobs" ? "Find your strongest paths in under a minute." : tool === "match" ? "Get an exact role fit score and skill gaps." : "Turn your resume into a stronger signal."}</p></div><button disabled={!resumes.length || (tool === "match" && !jobDescription.trim())} onClick={tool === "jobs" ? findJobs : tool === "match" ? matchJob : improveResume}
+            <div className="flex items-center justify-between gap-4 rounded-[1.4rem] bg-[#ed6845] p-5 text-white"><div><p className="font-bold">Ready when you are?</p><p className="text-sm text-white/75 mt-1">{tool === "jobs" ? "Find your strongest paths in under a minute." : "Turn your resume into a stronger signal."}</p></div><button disabled={!resumes.length} onClick={tool === "jobs" ? findJobs : improveResume}
                 className="shrink-0 px-5 py-3 rounded-xl font-bold bg-[#172a2b] text-white disabled:opacity-40 hover:bg-[#29483c] hover:-translate-y-0.5 transition">
-                {tool === "jobs" ? "Find matching jobs" : tool === "match" ? "Match this job" : "Improve my resume"}
+              {tool === "jobs" ? "Find matching jobs" : "Improve my resume"}
               </button>
             </div>
             </div>
@@ -359,11 +337,9 @@ export default function App() {
           </motion.div>
         )}
         {phase === "job-analysis" && <motion.div key="ja" {...fade} className={`${glass} p-12 text-center`}><motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }} className="w-16 h-16 mx-auto rounded-full border-4 border-blue-100 border-t-blue-600" /><p className="mt-6 text-lg text-slate-900">Reading your resume and finding your strongest role matches...</p></motion.div>}
-        {phase === "match-analysis" && <motion.div key="ma" {...fade} className={`${glass} p-12 text-center`}><motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }} className="w-16 h-16 mx-auto rounded-full border-4 border-blue-100 border-t-blue-600" /><p className="mt-6 text-lg text-slate-900">Comparing your resume against the role requirements...</p></motion.div>}
         {phase === "improve-analysis" && <motion.div key="ia" {...fade} className={`${glass} p-12 text-center`}><motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }} className="w-16 h-16 mx-auto rounded-full border-4 border-blue-100 border-t-blue-600" /><p className="mt-6 text-lg text-slate-900">Finding the highest-value ways to strengthen your resume...</p></motion.div>}
         {phase === "results" && <Results key="r" data={data} onReset={reset} />}
         {phase === "job-results" && <JobMatches key="jm" data={data} onReset={reset} />}
-        {phase === "match-results" && <JobDescriptionResult key="mr" data={data} onReset={reset} />}
         {phase === "improve-results" && <ImprovementResults key="ir" data={data} onReset={reset} />}
       </AnimatePresence>
       </div>
