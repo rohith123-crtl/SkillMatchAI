@@ -145,27 +145,7 @@ function JobMatches({ data, onReset }) {
         ))}
       </div>
       <Recommendations present={data.profile.skills} roleOptions={rankedMatches} selectedRole={selectedRole} onRoleChange={setSelectedRole} />
-      <SkillProgress skills={[...(rankedMatches[0]?.missingSkills || []), ...marketSkills.map((skill) => skill.name)]} role={selectedRole} />
     </motion.div>
-  );
-}
-
-function SkillProgress({ skills = [], role = "" }) {
-  const uniqueSkills = [...new Set(skills.map((skill) => skill.toLowerCase()))].slice(0, 10);
-  const [completed, setCompleted] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("skillmatch-progress") || "[]"); } catch { return []; }
-  });
-  const done = uniqueSkills.filter((skill) => completed.includes(skill)).length;
-  const toggle = (skill) => {
-    const next = completed.includes(skill) ? completed.filter((item) => item !== skill) : [...completed, skill];
-    setCompleted(next); localStorage.setItem("skillmatch-progress", JSON.stringify(next));
-  };
-  return (
-    <section className={`${glass} p-5 print-hidden`}>
-      <div className="flex items-center justify-between gap-4 mb-4"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#ed6845]">Skill progress</p><h2 className="text-xl font-bold text-[#152033] mt-1">Build toward {role || "your next role"}</h2></div><span className="text-sm font-bold text-[#256044]">{done}/{uniqueSkills.length} complete</span></div>
-      <div className="h-2 rounded-full bg-[#e8eee5] overflow-hidden mb-4"><motion.div animate={{ width: `${uniqueSkills.length ? (done / uniqueSkills.length) * 100 : 0}%` }} className="h-full rounded-full bg-[#ed6845]" /></div>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-2">{uniqueSkills.map((skill) => <button type="button" key={skill} onClick={() => toggle(skill)} className={`text-left rounded-xl border px-3 py-2 text-sm font-semibold transition ${completed.includes(skill) ? "border-[#b7d59b] bg-[#e9f3df] text-[#256044] line-through" : "border-[#dfe4dc] bg-white text-[#385744] hover:border-[#ed6845]"}`}><span className="mr-2">{completed.includes(skill) ? "✓" : "○"}</span>{skill}</button>)}</div>
-    </section>
   );
 }
 
@@ -180,7 +160,6 @@ function JobDescriptionResult({ data, onReset }) {
       <div className="flex justify-between items-end gap-4 flex-wrap print-hidden"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#ed6845]">Exact role match</p><h2 className="text-3xl font-bold text-[#152033] mt-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{data.job.name}</h2><p className="text-sm text-[#738276] mt-2">A direct comparison between your resume and this job description.</p></div><div className="flex gap-2"><ReportButton /><button onClick={onReset} className="px-4 py-2 rounded-xl border border-[#cbd6ca] bg-white text-[#256044] font-semibold">New match</button></div></div>
       <div className={`${glass} p-6 grid md:grid-cols-[auto_1fr] gap-6 items-center`}><Gauge value={candidate.score} size={170} /><div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#56805c]">Resume fit score</p><h3 className="text-2xl font-bold text-[#152033] mt-1">{candidate.name}</h3><p className="text-sm text-[#738276] mt-1">{candidate.explanation}</p><div className="grid grid-cols-3 gap-3 mt-5">{[["Skills", candidate.breakdown.skill], ["Experience", candidate.breakdown.experience], ["Domain", candidate.breakdown.domain]].map(([label, value]) => <div key={label} className="rounded-xl bg-[#e9f3df] p-3 text-center"><strong className="block text-xl text-[#256044]">{value}%</strong><span className="text-xs text-[#56805c]">{label}</span></div>)}</div></div></div>
       <div className="grid lg:grid-cols-2 gap-5"><div className="bg-[#e9f3df] border border-[#d7e7cc] rounded-[1.4rem] p-5"><p className="text-xs font-bold uppercase tracking-[.18em] text-[#56805c]">Matched signals · {candidate.matched.length}</p><div className="flex flex-wrap gap-2 mt-4">{candidate.matched.map((item) => <span key={item.skill} className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#256044]">{item.skill}</span>)}</div></div><div className="bg-[#fff2e9] border border-[#f8d8c7] rounded-[1.4rem] p-5"><p className="text-xs font-bold uppercase tracking-[.18em] text-[#a24d32]">Skills to strengthen · {candidate.missing.length}</p><div className="flex flex-wrap gap-2 mt-4">{candidate.missing.map((item) => <span key={item.skill} className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#a24d32]">{item.skill}</span>)}</div></div></div>
-      <SkillProgress skills={candidate.missing.map((item) => item.skill)} role={data.job.name} />
     </motion.div>
   );
 }
@@ -190,7 +169,6 @@ function ImprovementResults({ data, onReset }) {
     <motion.div {...fade} className="space-y-6">
       <div className="flex justify-between items-end gap-4 flex-wrap print-hidden"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-[#ed6845]">Resume improvement studio</p><h2 className="text-3xl font-bold text-[#152033] mt-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Make your signal stronger</h2><p className="text-sm text-[#738276] mt-2">Focused suggestions based on the skills and roles detected in your resume.</p></div><div className="flex gap-2"><ReportButton /><button onClick={onReset} className="px-4 py-2 rounded-xl border border-[#cbd6ca] bg-white text-[#256044] font-semibold">Improve another</button></div></div>
       <div className="grid lg:grid-cols-[.8fr_1.2fr] gap-5"><div className="bg-[#172a2b] rounded-[1.4rem] p-6 text-white"><p className="text-xs font-bold uppercase tracking-[.2em] text-[#ff9b78]">Priority skills</p><h3 className="text-2xl font-bold mt-2">Close the highest-value gaps.</h3><div className="flex flex-wrap gap-2 mt-6">{data.prioritySkills.map((skill) => <span key={skill} className="rounded-full bg-[#29483c] border border-[#41665b] px-3 py-1.5 text-sm text-[#cbe6a9]">{skill}</span>)}</div></div><div className="grid sm:grid-cols-3 gap-3">{data.suggestions.map((suggestion, index) => <article key={suggestion.title} className="rounded-[1.4rem] border border-[#dfe4dc] bg-white p-5"><span className="text-3xl font-bold text-[#ed6845]">0{index + 1}</span><h3 className="font-bold text-[#152033] mt-5">{suggestion.title}</h3><p className="text-sm text-[#738276] mt-2 leading-relaxed">{suggestion.detail}</p></article>)}</div></div>
-      <SkillProgress skills={data.prioritySkills} role={data.roles[0]?.title} />
     </motion.div>
   );
 }
